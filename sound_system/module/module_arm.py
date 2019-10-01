@@ -1,7 +1,8 @@
 import os
 from pocketsphinx import LiveSpeech, get_model_path
 
-from .import module_speak
+from . import module_pico
+from . import module_beep
 
 import datetime
 from time import sleep
@@ -39,18 +40,19 @@ def arm():
 
     start_sentence = "Please put your bag in my hand by 5 seconds."
     print("\n---------------------------------\n", start_sentence, "\n---------------------------------\n")
-    module_speak.speak(start_sentence)
+    module_pico.speak(start_sentence)
     sleep(5)
 
     while True:
         sentence = "Did you put your bag on my hand ?"
         print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-        module_speak.speak(sentence)
+        module_pico.speak(sentence)
         file = open(result_path, 'a')
         file.write(str(datetime.datetime.now()) + ": " + sentence + "\n")
         file.close()
 
         setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+        module_beep.beep("start")
         for question in live_speech:
             print("\n[*] CONFIRMING ...")
             # print(question)
@@ -65,33 +67,35 @@ def arm():
 
                 if str(question) == "yes":
 
+                    pause()
+                    module_beep.beep("stop")
                     answer = "Sure, I will close my hand."
                     print("\n---------------------------------\n", answer,
                           "\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(answer)
+                    module_pico.speak(answer)
                     return 1
 
                 elif str(question) == "no":
 
                     # Fail, listen one more time
+                    pause()
+                    module_beep.beep("stop")
                     answer = "Sorry."
                     print("\n---------------------------------\n", answer,
                           "\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(answer)
+                    module_pico.speak(answer)
                     setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                    noise_words = read_noise_word()
                     break
 
                 elif str(question) == "please say again":
 
                     pause()
-                    print("\n---------------------------------\n", sentence,
-                          "\n---------------------------------\n")
-                    module_speak.speak(sentence)
-
+                    module_beep.beep("stop")
                     # Ask yes-no question
                     setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                    noise_words = read_noise_word()
+                    break
 
             # noise
             else:

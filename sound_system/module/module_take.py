@@ -1,7 +1,8 @@
 import os
 from pocketsphinx import LiveSpeech, get_model_path
 
-from .import module_speak
+from . import module_pico
+from . import module_beep
 
 import datetime
 
@@ -44,22 +45,26 @@ def take():
     while True:
         # If I can't get place, count 1
         while counter < 3:
+            print("- " + str(counter + 1) + " cycle -")
             start_sentence = "May I help you ?"
             print("\n---------------------------------\n", start_sentence, "\n---------------------------------\n")
-            module_speak.speak(start_sentence)
+            module_pico.speak(start_sentence)
             # Noise list
             noise_words = read_noise_word(take_gram_path)
             # Setup live_speech
             setup_live_speech(False, take_dic_path, take_gram_path, 1e-10)
 
-            print("\n[*] PLEASE SAY PLACE ...")
+            print("\n[*] TAKE THIS BAG TO THE ...")
+            module_beep.beep("start")
             for question1 in live_speech:
                 # print(question)
-                if str(question1) not in noise_words:
+                if str(question1) not in noise_words and str(question1).split(" ")[0] == "take":
                     file = open(result_path, 'a')
                     file.write(str(datetime.datetime.now()) + ": " + str(question1) + "\n")
                     file.close()
-                    place = str(question1).replace("take this bag to the ", "")
+                    pause()
+                    module_beep.beep("stop")
+                    place = str(question1).replace("take this bag to the ", "").replace("take this bag to thing ", "")
                     print("\n----------------------------\n", str(question1), "\n----------------------------\n")
                     print("\n-----------PLACE-----------\n", place,
                           "\n----------------------------\n")
@@ -67,11 +72,11 @@ def take():
 
                     sentence = "Is it " + str(place) + " ?"
                     print("\n---------------------------------\n",sentence,"\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(sentence)
+                    module_pico.speak(sentence.replace("_", " "))
 
                     # Detect yes or no
                     setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                    module_beep.beep("start")
                     for question2 in live_speech:
                         print("\n[*] CONFIRMING ...")
                         #print(question2)
@@ -87,31 +92,36 @@ def take():
                             if str(question2) == "yes":
 
                                 # Deside order
+                                pause()
+                                module_beep.beep("stop")
                                 answer = "Sure, I will take the bag to the " + str(place) + "."
                                 print("\n---------------------------------\n",answer,"\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer.replace("_", " "))
                                 return str(place)
 
                             elif str(question2) == "no":
 
                                 # Fail, oreder one more time
+                                pause()
+                                module_beep.beep("stop")
                                 answer = "Sorry."
                                 print("\n---------------------------------\n",answer,"\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer)
                                 setup_live_speech(False, take_dic_path, take_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
                                 break
 
 
                             elif str(question2) == "please say again":
 
                                 pause()
+                                module_beep.beep("stop")
                                 print("\n---------------------------------\n",sentence,"\n---------------------------------\n")
-                                module_speak.speak(sentence)
-
+                                module_pico.speak(sentence.replace("_", " "))
+                                module_beep.beep("start")
                                 # Ask yes-no question to barman
                                 setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
 
                         # noise
                         else:
@@ -124,12 +134,12 @@ def take():
                 # noise
                 else:
                     print(".*._noise_.*.")
-                    print("\n[*] PLEASE SAY PLACE ...")
+                    print("\n[*] TAKE THIS BAG TO THE ...")
                     pass
 
         end_sentence = "I can't detect, so I will ask all places."
         print("\n---------------------------------\n", end_sentence, "\n---------------------------------\n")
-        module_speak.speak(end_sentence)
+        module_pico.speak(end_sentence)
         file = open(result_path, 'a')
         file.write(str(datetime.datetime.now()) + ": " + str(end_sentence) + "\n")
         file.close()
@@ -140,13 +150,14 @@ def take():
             sentence = "Is it " + places_list[i] + " ?"
             print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
             pause()
-            module_speak.speak(sentence)
+            module_pico.speak(sentence.replace("_", " "))
             file = open(result_path, 'a')
             file.write(str(datetime.datetime.now()) + ": " + str(sentence) + "\n")
             file.close()
 
             # Detect yes or no
             setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+            module_beep.beep("start")
             for question3 in live_speech:
                 print("\n[*] CONFIRMING ...")
                 # print(question2)
@@ -162,31 +173,36 @@ def take():
                     if str(question3) == "yes":
 
                         # Deside order
+                        pause()
+                        module_beep.beep("stop")
                         answer = "Sure, I will take the bag to the " + places_list[i] + "."
                         print("\n---------------------------------\n", answer, "\n---------------------------------\n")
-                        pause()
-                        module_speak.speak(answer)
+                        module_pico.speak(answer.replace("_", " "))
                         return places_list[i]
 
                     elif str(question3) == "no":
 
                         # Fail, oreder one more time
+                        pause()
+                        module_beep.beep("stop")
                         answer = "Sorry, I will ask next place."
                         print("\n---------------------------------\n", answer, "\n---------------------------------\n")
-                        pause()
-                        module_speak.speak(answer)
+                        module_pico.speak(answer)
                         setup_live_speech(False, take_dic_path, take_gram_path, 1e-10)
+                        noise_words = read_noise_word(yes_no_gram_path)
                         break
 
 
                     elif str(question3) == "please say again":
 
                         pause()
+                        module_beep.beep("stop")
                         print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-                        module_speak.speak(sentence)
-
+                        module_pico.speak(sentence.replace("_", " "))
+                        module_beep.beep("start")
                         # Ask yes-no question to barman
                         setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                        noise_words = read_noise_word(yes_no_gram_path)
 
                 # noise
                 else:

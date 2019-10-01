@@ -13,11 +13,12 @@ setup(
     data_files=[
         ('lib/' + package_name, ['package.xml']),
         ('lib/' + package_name+'/module',
-         ['module/module_speak.py',
+         ['module/module_pico.py',
           'module/module_follow.py',
           'module/module_take.py',
           'module/module_arm.py',
-          'module/module_make_map.py'
+          'module/module_make_map.py',
+          'module/module_beep.py'
           ]),
         ('lib/sound_system/dictionary/',
          ['dictionary/yes_no.dict',
@@ -28,6 +29,11 @@ setup(
           'dictionary/take_bag.gram',
           'dictionary/map_test.dict',
           'dictionary/map_test.gram'
+          ]),
+        ('lib/sound_system/beep/',
+         ['beep/speech.wav',
+          'beep/start.wav',
+          'beep/stop.wav'
           ]),
         ('lib/sound_system/log',
             ['log/log.txt'])

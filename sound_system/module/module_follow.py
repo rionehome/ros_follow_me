@@ -1,7 +1,8 @@
 import os
 from pocketsphinx import LiveSpeech, get_model_path
 
-from .import module_speak
+from . import module_pico
+from . import module_beep
 
 import datetime
 from time import sleep
@@ -42,10 +43,10 @@ def follow(when):
     if when == "first":
         start_sentence = "Please say follow me"
         print("\n---------------------------------\n", start_sentence, "\n---------------------------------\n")
-        module_speak.speak(start_sentence)
+        module_pico.speak(start_sentence)
 
         setup_live_speech(False, follow_dic_path, follow_gram_path, 1e-10)
-        sleep(1)
+        module_beep.beep("start")
         for question1 in live_speech:
             print("\n[*] PREASE SAY FOLLOW ME ...")
             # print(question1)
@@ -59,11 +60,12 @@ def follow(when):
                     file = open(result_path, 'a')
                     file.write(str(datetime.datetime.now()) + ": " + str(question1) + "\n")
                     file.close()
+                    pause()
+                    module_beep.beep("stop")
                     print("\n---------------------------------\n", str(question1), "\n---------------------------------\n")
                     sentence = "Sure, I will follow you"
                     print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(sentence)
+                    module_pico.speak(sentence)
                     return 1
 
             # noise
@@ -80,7 +82,7 @@ def follow(when):
         print("\n---------------------------------\n", stop_sentence, "\n---------------------------------\n")
 
         setup_live_speech(False, follow_dic_path, follow_gram_path, 1e-10)
-        sleep(1)
+        module_beep.beep("start")
         for question2 in live_speech:
             print("\n[*] PREASE SAY STOP FOLLOWING ME ...")
             # print(question2)
@@ -94,6 +96,8 @@ def follow(when):
                     file = open(result_path, 'a')
                     file.write(str(datetime.datetime.now()) + ": " + str(question2) + "\n")
                     file.close()
+                    pause()
+                    module_beep.beep("stop")
                     print("\n---------------------------------\n", str(question2), "\n---------------------------------\n")
 
                     # Detect yes (or stop following me) or no
@@ -106,9 +110,10 @@ def follow(when):
                         file.write(str(datetime.datetime.now()) + ": " + sentence + "\n")
                         file.close()
                         pause()
-                        module_speak.speak(sentence)
+                        module_pico.speak(sentence)
 
                         setup_live_speech(False, follow_dic_path, follow_gram_path, 1e-10)
+                        module_beep.beep("start")
                         for question3 in live_speech:
                             print("\n[*] CONFIRMING ...")
                             # print(question3)
@@ -124,22 +129,25 @@ def follow(when):
                                 if str(question3) == "yes" or str(question3) == "stop following me":
 
                                     # Stop following me
+                                    pause()
+                                    module_beep.beep("stop")
                                     answer = "Sure, I will stop following you."
                                     print("\n---------------------------------\n", answer,
                                           "\n---------------------------------\n")
-                                    pause()
-                                    module_speak.speak(answer)
+                                    module_pico.speak(answer)
                                     return "car"
 
                                 elif str(question3) == "no":
 
                                     # Fail, listen one more time
+                                    pause()
+                                    module_beep.beep("stop")
                                     answer = "Sorry, let me know if you want to stop."
                                     print("\n---------------------------------\n", answer,
                                           "\n---------------------------------\n")
-                                    pause()
-                                    module_speak.speak(answer)
+                                    module_pico.speak(answer)
                                     setup_live_speech(False, follow_dic_path, follow_gram_path, 1e-10)
+                                    noise_words = read_noise_word(follow_gram_path)
                                     flag = False
                                     break
 
@@ -147,12 +155,11 @@ def follow(when):
                                 elif str(question3) == "please say again":
 
                                     pause()
-                                    print("\n---------------------------------\n", sentence,
-                                          "\n---------------------------------\n")
-                                    module_speak.speak(sentence)
-
+                                    module_beep.beep("stop")
                                     # Ask yes-no question
                                     setup_live_speech(False, follow_dic_path, follow_gram_path, 1e-10)
+                                    noise_words = read_noise_word(follow_gram_path)
+                                    break
 
                             # noise
                             else:
@@ -230,4 +237,4 @@ def setup_live_speech(lm, dict_path, jsgf_path, kws_threshold):
                              kws_threshold=kws_threshold)
 
 if __name__ == '__main__':
-    follow("first")
+    follow("end")

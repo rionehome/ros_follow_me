@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
-from module import module_speak
+from module import module_pico
 from module import module_follow
 from module import module_take
 from module import module_arm
@@ -31,7 +31,7 @@ class SoundSystem(Node):
 
         # Speak a content
         if 'speak' == command[0].replace('Command:', ''):
-            if module_speak.speak(command[1].replace('Content:', '')) == 1:
+            if module_pico.speak(command[1].replace('Content:', '')) == 1:
                 self.cerebrum_publisher('Return:1,Content:None')
 
         # Start follow me, content is first or end

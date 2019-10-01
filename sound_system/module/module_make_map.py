@@ -1,7 +1,8 @@
 import os
 from pocketsphinx import LiveSpeech, get_model_path
 
-from .import module_speak
+from . import module_pico
+from . import module_beep
 
 import datetime
 from time import sleep
@@ -46,15 +47,15 @@ def make_map(do = None):
         while True:
             sentence = "Where is here ?"
             print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-            module_speak.speak(sentence)
+            module_pico.speak(sentence)
             file = open(result_path, 'a')
             file.write(str(datetime.datetime.now()) + ": " + sentence + "\n")
             file.close()
 
             setup_live_speech(False, map_dic_path, map_gram_path, 1e-10)
-            sleep(1)
+            module_beep.beep("start")
             for question1 in live_speech:
-                print("\n[*] WHERE IS HERE ...")
+                print("\n[*] HERE IS THE ...")
                 # print(question1)
 
                 # Noise list
@@ -65,16 +66,18 @@ def make_map(do = None):
                     file = open(result_path, 'a')
                     file.write(str(datetime.datetime.now()) + ": " + str(question1) + "\n")
                     file.close()
+                    pause()
+                    module_beep.beep("stop")
                     print("\n-----------your order-----------\n", str(question1), "\n---------------------------------\n")
                     place = str(question1).replace("Here is the ", "")
                     sentence = "Is here " + str(place) + " ?"
                     print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(sentence)
+                    module_pico.speak(sentence.replace("_", " "))
 
                     # Ask yes-no question
                     setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
                     # Ask yes-no question
+                    module_beep.beep("start")
                     for question2 in live_speech:
                         print("\n[*] CONFIRMING ...")
                         # print(question2)
@@ -88,35 +91,40 @@ def make_map(do = None):
 
                             if str(question2) == "yes":
 
-                                answer = "Sure, I understand here is " + place + "."
+                                pause()
+                                module_beep.beep("stop")
+                                answer = "Sure, I understand here is " + str(place) + "."
                                 print("\n---------------------------------\n", answer,
                                       "\n---------------------------------\n")
                                 print("\n------------place--------------\n", str(place),
                                       "\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer.replace("_", " "))
                                 return str(place)
 
                             elif str(question2) == "no":
 
                                 # Fail, listen one more time
+                                pause()
+                                module_beep.beep("stop")
                                 answer = "Sorry."
                                 print("\n---------------------------------\n", answer,
                                       "\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer)
                                 setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
                                 break
 
                             elif str(question2) == "please say again":
 
                                 pause()
+                                module_beep.beep("stop")
                                 print("\n---------------------------------\n", sentence,
                                       "\n---------------------------------\n")
-                                module_speak.speak(sentence)
-
+                                module_pico.speak(sentence.replace("_", " "))
+                                module_beep.beep("start")
                                 # Ask yes-no question
                                 setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
 
                         # noise
                         else:
@@ -127,22 +135,22 @@ def make_map(do = None):
                 # noise
                 else:
                     print(".*._noise_.*.")
-                    print("\n[*] WHERE IS HERE ...")
+                    print("\n[*] HERE IS THE ...")
                     pass
 
     elif do == "go":
         while True:
             sentence = "Where shall I go ?"
             print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-            module_speak.speak(sentence)
+            module_pico.speak(sentence)
             file = open(result_path, 'a')
             file.write(str(datetime.datetime.now()) + ": " + sentence + "\n")
             file.close()
 
             setup_live_speech(False, map_dic_path, map_gram_path, 1e-10)
-            sleep(1)
+            module_beep.beep("start")
             for question1 in live_speech:
-                print("\n[*] WHERE SHALL I GO ...")
+                print("\n[*] PLEASE GO TO THE ...")
                 # print(question1)
 
                 # Noise list
@@ -153,17 +161,19 @@ def make_map(do = None):
                     file = open(result_path, 'a')
                     file.write(str(datetime.datetime.now()) + ": " + str(question1) + "\n")
                     file.close()
+                    pause()
+                    module_beep.beep("stop")
                     print("\n-----------your order-----------\n", str(question1),
                           "\n---------------------------------\n")
-                    place = str(question1).replace("Please go to the ", "")
+                    place = str(question1).replace("Please go to the ", "").replace("Please go to thing ", "")
                     sentence = "Is is " + str(place) + " ?"
                     print("\n---------------------------------\n", sentence, "\n---------------------------------\n")
-                    pause()
-                    module_speak.speak(sentence)
+                    module_pico.speak(sentence.replace("_", " "))
 
                     # Ask yes-no question
                     setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
                     # Ask yes-no question
+                    module_beep.beep("start")
                     for question2 in live_speech:
                         print("\n[*] CONFIRMING ...")
                         # print(question2)
@@ -177,35 +187,40 @@ def make_map(do = None):
 
                             if str(question2) == "yes":
 
-                                answer = "Sure, I will go to the " + place + "."
+                                answer = "Sure, I will go to the " + str(place) + "."
+                                pause()
+                                module_beep.beep("stop")
                                 print("\n---------------------------------\n", answer,
                                       "\n---------------------------------\n")
                                 print("\n------------place--------------\n", str(place),
                                       "\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer.replace("_", " "))
                                 return str(place)
 
                             elif str(question2) == "no":
 
                                 # Fail, listen one more time
                                 answer = "Sorry."
+                                pause()
+                                module_beep.beep("stop")
                                 print("\n---------------------------------\n", answer,
                                       "\n---------------------------------\n")
-                                pause()
-                                module_speak.speak(answer)
+                                module_pico.speak(answer)
                                 setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
                                 break
 
                             elif str(question2) == "please say again":
 
                                 pause()
+                                module_beep.beep("stop")
                                 print("\n---------------------------------\n", sentence,
                                       "\n---------------------------------\n")
-                                module_speak.speak(sentence)
-
+                                module_pico.speak(sentence.replace("_", " "))
+                                module_beep.beep("start")
                                 # Ask yes-no question
                                 setup_live_speech(False, yes_no_dic_path, yes_no_gram_path, 1e-10)
+                                noise_words = read_noise_word(yes_no_gram_path)
 
                         # noise
                         else:
@@ -216,7 +231,7 @@ def make_map(do = None):
                 # noise
                 else:
                     print(".*._noise_.*.")
-                    print("\n[*] WHERE SHALL I GO ...")
+                    print("\n[*] PLEASE GO TO THE ...")
                     pass
 
 # Stop lecognition
