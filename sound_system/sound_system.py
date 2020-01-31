@@ -8,8 +8,7 @@ from module import module_take
 from module import module_arm
 from module import module_make_map
 
-from std_msgs.msg import String
-from time import sleep
+from rione_msgs.msg import Command
 
 class SoundSystem(Node):
     def __init__(self):
@@ -18,66 +17,68 @@ class SoundSystem(Node):
         self.command = None
 
         self.create_subscription(
-            String, 'sound_system/command',
+            Command, 'sound_system/command',
             self.command_callback,
-            qos_profile_sensor_data
+            10
         )
+
+        self.senses_publisher = self.create_publisher(
+            Command,
+            'cerebrum/command',
+            10
+        )
+
 
     # recieve a command {Command, Content}
     def command_callback(self, msg):
 
-        self.command = msg.data
-        command = msg.data.split(',')
-
         # Speak a content
-        if 'speak' == command[0].replace('Command:', ''):
-            if module_pico.speak(command[1].replace('Content:', '')) == 1:
-                self.cerebrum_publisher('Return:1,Content:None')
+        if 'speak' == msg.command:
+            if module_pico.speak(msg.content) == 1:
+                self.cerebrum_publisher(0,"speak")
 
         # Start follow me, content is first or end
         when = ""
-        if 'follow' == command[0].replace('Command:', ''):
-            when = command[1].replace('Content:', '')
+        if 'follow' == msg.command:
+            when = msg.content
             answer = module_follow.follow(when)
             if str(when) == "first":
                 if answer == 1:
-                    self.cerebrum_publisher('Retern:0,Content:None')
+                    self.cerebrum_publisher(0,"follow_first")
             elif str(when) == "end":
                 if str(answer) == "car":
-                    self.cerebrum_publisher('Retern:0,Content:car')
+                    self.cerebrum_publisher(0,"follow_end","car")
 
-        if 'arm' == command[0].replace('Command:', ''):
+        if 'arm' == msg.command:
             if module_arm.arm() == 1:
-                self.cerebrum_publisher('Return:1,Content:None')
+                self.cerebrum_publisher(0,"arm")
 
         # Where to take the bag
-        if 'take' == command[0].replace('Command:', ''):
+        if 'take' == msg.command:
             answer = module_take.take()
             if str(answer) != "":
-                self.cerebrum_publisher('Retern:0,Content:' + str(answer))
+                self.cerebrum_publisher(0,"take",str(answer))
 
         # Make map
         content = None
-        if 'make_map' == command[0].replace('Command:', ''):
-            content = command[1].replace('Content:', '')
+        if 'make_map' == msg.command:
+            content = msg.content
             if content == "go":
-                self.cerebrum_publisher('Retern:0,Content:' + str(module_make_map.make_map(content)))
-            else:self.cerebrum_publisher('Retern:0,Content:' + str(module_make_map.make_map()))
+                self.cerebrum_publisher(0,"make_map_go",str(module_make_map.make_map(content)))
+            else:self.cerebrum_publisher(0,"make_map_else",(module_make_map.make_map()))
 
     # Publish a result of an action
-    def cerebrum_publisher(self, message):
-        self.senses_publisher = self.create_publisher(
-            String, 'cerebrum/command',
-            qos_profile_sensor_data
-        )
+    def cerebrum_publisher(self, flag, command, content=""):
 
-        sleep(2)
-
-        _trans_message = String()
-        _trans_message.data = message
+        _trans_message = Command()
+        _trans_message.flag = flag
+        _trans_message.command = command
+        _trans_message.content = content
+        _trans_message.sender = "sound"
 
         self.senses_publisher.publish(_trans_message)
         # self.destroy_publisher(self.senses_publisher)
+
 
 def main():
     rclpy.init()
